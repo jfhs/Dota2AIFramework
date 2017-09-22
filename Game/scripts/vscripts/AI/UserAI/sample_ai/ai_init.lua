@@ -62,7 +62,7 @@ function AI:Think()
 		Dota2AIBot:ParseHeroCommand(self.hero, command)
 	end)
 
-	return 0.06
+	return 0.1
 
 	--Check if we're at the move target yet
 --	AI_ExecuteOrderFromTable({

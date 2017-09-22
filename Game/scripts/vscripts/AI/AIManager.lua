@@ -132,7 +132,16 @@ function AIManager:PrecacheDone( pID, heroName, team )
 	local hero = PlayerResource:ReplaceHeroWith( pID, heroName, 0, 0 )
 	hero:RespawnHero(false, true, false)
 
+	PlayerResource:SetCameraTarget(0, hero)
+	PlayerResource:SetOverrideSelectionEntity(0, hero)
+
 	table.insert( AIManager.aiHeroes[ team ], hero )
+	AIManager.heroesSpawned = AIManager.heroesSpawned + 1
+end
+
+function AIManager:IsReadyToStart()
+	print("AIManager is should be able to start if " .. AIManager.heroesToSpawn .. " <= " .. AIManager.heroesSpawned)
+	return AIManager.heroesToSpawn <= AIManager.heroesSpawned
 end
 
 --Initialise all AI

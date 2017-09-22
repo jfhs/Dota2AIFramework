@@ -31,7 +31,11 @@ function AIFramework:Init()
 	GameRules:SetCustomGameTeamMaxPlayers( 1, 	5 )
 
 	Convars:SetInt( 'dota_auto_surrender_all_disconnected_timeout', 7200 )
-	SendToServerConsole( 'customgamesetup_set_auto_launch_delay 300' )
+	SendToServerConsole( 'customgamesetup_set_auto_launch_delay 30' )
+	GameRules:SetShowcaseTime(0)
+	GameRules:SetStrategyTime(10)
+	GameRules:SetHeroSelectionTime(0)
+--	GameRules:SetCustomGameSetupTimeout(0)
 
 	--Initialise the AI manager
 	AIManager:Init()
@@ -61,6 +65,28 @@ end
 --game_rules_state_changed event handler
 function AIFramework:OnGameStateChange( event )
 	local state = GameRules:State_Get()
+	if state == DOTA_GAMERULES_STATE_CUSTOM_GAME_SETUP then
+		self:SpawnAI("", {
+			game_mode="1",
+			ai1="2",
+			ai2="0",
+		})
+		Timers:CreateTimer(20, function()
+			-- Lock the team selection so that no more team changes can be made
+--			Game.SetTeamSelectionLocked( true );
+			GameRules:LockCustomGameSetupTeamAssignment(true)
+
+			-- Disable the auto start count down
+--			Game.SetAutoLaunchEnabled( false );
+			GameRules:EnableCustomGameSetupAutoLaunch(false)
+
+			-- Set the remaining time before the game starts
+--			Game.SetRemainingSetupTime( 4 );
+			GameRules:SetCustomGameSetupRemainingTime(4)
+			--SendToServerConsole("customgamesetup_set_remaining_time 0")
+			return nil
+		end)
+	end
 	if state == DOTA_GAMERULES_STATE_PRE_GAME then
 		self:OnGameLoaded()
 	end
@@ -70,9 +96,10 @@ end
 function AIFramework:OnGameLoaded()
 	local t = 1
 	Timers:CreateTimer( 1, function()
-		if t < 4 then
+		if t < 4 or not AIManager:IsReadyToStart() then
 			--Count down
 			ShowCenterMessage( 4 - t, 1 )
+			print("Counting to " .. t)
 		else
 			ShowCenterMessage( 'Start!', 2 )
 			--Initialise Radiant AI

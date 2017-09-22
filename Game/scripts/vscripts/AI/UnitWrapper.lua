@@ -450,7 +450,7 @@ function UnitSetup( unit, globalUnit, team )
 	]]
 	function unit:GetAverageTrueDamage()
 		if InVision( globalUnit, team ) then
-			return globalUnit:GetForwardVector()
+			return globalUnit:GetAttackDamage()
 		else
 			return 0
 		end
@@ -589,5 +589,13 @@ function UnitSetup( unit, globalUnit, team )
 
 	function unit:IsAttacking()
 		return globalUnit:IsAttacking()
+	end
+
+	function unit:GetLastHits()
+		return globalUnit:GetLastHits()
+	end
+
+	function unit:GetPhysicalArmorValue()
+		return globalUnit:GetPhysicalArmorValue()
 	end
 end
