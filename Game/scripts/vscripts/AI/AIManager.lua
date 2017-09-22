@@ -268,6 +268,7 @@ function AIManager:PopulateAIGlobals( name, global, wrapper )
 	global.Warning = Warning
 	global.AIUnitTests = AIUnitTests
 	global.class = class
+	global.dkjson = package.loaded['game/dkjson']
 
 	--Enable the LoadKeyValues function but set the AI directory as root
 	global.LoadKeyValues = function( path )
@@ -283,6 +284,8 @@ function AIManager:PopulateAIGlobals( name, global, wrapper )
 	global.RotatePosition = RotatePosition
 	global.RotateQuaternionByAxisAngle = RotateQuaternionByAxisAngle
 	global.RotationDelta = RotationDelta
+	global.CreateHTTPRequestScriptVM = CreateHTTPRequestScriptVM
+	global.Entities = Entities
 
 	--Overriden Dota global functions
 	function global.AI_FindUnitsInRadius( ... ) return wrapper:AI_FindUnitsInRadius( ... ) end

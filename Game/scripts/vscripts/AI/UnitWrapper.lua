@@ -350,7 +350,7 @@ function UnitSetup( unit, globalUnit, team )
 
 		@modification: Only works in vision.
 	]]
-	function unit:GetAttackRange()
+	function unit:GetAttackAnimationPoint()
 		if InVision( globalUnit, team ) then
 			return globalUnit:GetAttackAnimationPoint()
 		else
@@ -373,12 +373,12 @@ function UnitSetup( unit, globalUnit, team )
 	end
 
 	--[[[
-		@func unit:GetAttackRange()
+		@func unit:GetAttackForwardVector()
 		@desc Get the unit's attack range.
 
 		@modification: Only works in vision.
 	]]
-	function unit:GetAttackRange()
+	function unit:GetAttackForwardVector()
 		if InVision( globalUnit, team ) then
 			return globalUnit:GetForwardVector()
 		else
@@ -507,5 +507,87 @@ function UnitSetup( unit, globalUnit, team )
 	]]
 	function unit:GetName()
 		return globalUnit:GetName()
+	end
+
+	function unit:GetMana()
+		return globalUnit:GetMana()
+	end
+
+	function unit:GetMaxMana()
+		return globalUnit:GetMaxMana()
+	end
+
+	function unit:IsBlind()
+		return globalUnit:IsBlind()
+	end
+
+	function unit:IsDominated()
+		return globalUnit:IsDominated()
+	end
+
+	function unit:IsDeniable()
+		return globalUnit:IsDeniable()
+	end
+
+	function unit:IsDisarmed()
+		return globalUnit:IsDisarmed()
+	end
+
+	function unit:IsRooted()
+		return globalUnit:IsRooted()
+	end
+
+	function unit:GetTeamNumber()
+		return globalUnit:GetTeamNumber()
+	end
+
+	function unit:GetCurrentXP()
+		return globalUnit:GetCurrentXP()
+	end
+
+	function unit:GetDeaths()
+		return globalUnit:GetDeaths()
+	end
+
+	function unit:GetDenies()
+		return globalUnit:GetDenies()
+	end
+
+	function unit:GetAbilityCount()
+		return globalUnit:GetAbilityCount()
+	end
+
+	function unit:IsBuilding()
+		return globalUnit:IsBuilding()
+	end
+
+	function unit:IsTower()
+		return globalUnit:IsTower()
+	end
+
+	function unit:GetAttackTarget()
+		local target = globalUnit:GetAttackTarget()
+		if target ~= nil and InVision(target, team) then
+			return WrapUnit(target, team)
+		end
+		return nil
+	end
+
+	function unit:GetCurrentActiveAbility()
+		if InVision(globalUnit, team) then
+			local ability = globalUnit:GetCurrentActiveAbility()
+			if ability then
+				return WrapAbility(ability)
+			end
+		end
+		return nil
+	end
+
+	function unit:GetAttackPoint()
+		return globalUnit:GetCastPoint(true)
+	end
+
+	function unit:IsAttacking()
+		return globalUnit:IsAttacking()
 	end
 end

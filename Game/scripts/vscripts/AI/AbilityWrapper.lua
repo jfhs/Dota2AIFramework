@@ -271,4 +271,12 @@ function AbilitySetup( ability, globalAbility, team )
 	function ability:GetName()
 		return globalAbility:GetName()
 	end
+
+	function ability:GetLevel()
+		return globalAbility:GetLevel()
+	end
+
+	function ability:GetMaxLevel()
+		return globalAbility:GetMaxLevel()
+	end
 end
