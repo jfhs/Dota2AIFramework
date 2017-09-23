@@ -6,13 +6,14 @@ import subprocess
 import time
 from threading import Thread
 import math
+from libs.vconsole2_lib import VConsole2Lib
 
 OBSERVATIONS_PER_UNIT = 8
 # coords (3) + hp + max hp + armor + damage + isEnemy
 OBSERVATIONS_FOR_ME = 7
 # coords (3) + hp + mp + damage + isAttacking
 DOTA_PATH = 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\dota 2 beta\\game\\bin\\win64\\dota2.exe'
-DOTA_DEFAULT_ARGS = ['-console', '-condebug']
+DOTA_DEFAULT_ARGS = ['-vconsole']
 TIMESCALE = 10
 STEP_UNIT = 100
 STARTING_LOC = [-1041, -585, 128]
@@ -63,6 +64,9 @@ def run_threaded_server():
     #httpd.shutdown()
     print("HTTP shutdown completed")
 
+def vconsolePrint(vconsole, channel, msg):
+    print("[%s]: %s" % (channel, msg))
+
 class Dota2Env(gym.Env):
     def __init__(self, n_moves=9, n_units=10):
         self.n_units = n_units
@@ -82,8 +86,21 @@ class Dota2Env(gym.Env):
 
     def _run_dota(self):
         if self.dotaprocess:
-            self.dotaprocess.kill()
+            print("Dota exists, restarting map")
+            self.vconsole.send_cmd('disconnect')
+            time.sleep(1)
+            self.vconsole.send_cmd('dota_launch_custom_game d2ai dota')
+            #time.sleep(20)
+            return
+            #self.dotaprocess.kill()
         self.dotaprocess = subprocess.Popen([DOTA_PATH] + DOTA_DEFAULT_ARGS + ['+sv_cheats 1', '+host_timescale ' + str(TIMESCALE), '+dota_launch_custom_game d2ai dota'])
+        self.vconsole = VConsole2Lib()
+        self.vconsole.log_to_screen = False
+        #self.vconsole.on_prnt_received = vconsolePrint
+        print("Trying connect to vconsole...")
+        while not self.vconsole.connect():
+            pass
+        print("Connected")
 
     def _getCreepsKilled(self, world):
         me = self._getMe(world)

@@ -30,7 +30,7 @@ from keras.optimizers import Adam
 from keras.utils import plot_model
 
 class DQNCartPoleSolver():
-    def __init__(self, n_episodes=1000, n_win_ticks=195, max_env_steps=None, gamma=1.0, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, batch_size=4096, monitor=False, quiet=False):
+    def __init__(self, n_episodes=1000, n_win_ticks=195, max_env_steps=None, gamma=1.0, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, batch_size=4096, minibatches_per_episode=50, monitor=False, quiet=False):
         self.memory = deque(maxlen=1000000)
         self.positive_memory = deque(maxlen=1000000)
         self.positive_batch_injection = 10
@@ -46,12 +46,15 @@ class DQNCartPoleSolver():
         self.n_win_ticks = n_win_ticks
         self.batch_size = batch_size
         self.quiet = quiet
+        self.minibatches_per_episode = minibatches_per_episode
         if max_env_steps is not None: self.env._max_episode_steps = max_env_steps
 
         # Init model
         self.model = Sequential()
-        self.model.add(Dense(24, input_dim=self.env.observation_space.n, activation='tanh'))
-        self.model.add(Dense(48, activation='tanh'))
+        self.model.add(Dense(self.env.observation_space.n*2, input_dim=self.env.observation_space.n, activation='linear'))
+        self.model.add(Dense(self.env.observation_space.n, activation='linear'))
+        self.model.add(Dense(self.env.observation_space.n, activation='tanh'))
+        self.model.add(Dense(self.env.observation_space.n, activation='softmax'))
         self.model.add(Dense(self.env.action_space.n, activation='linear'))
         self.model.compile(loss='mse', optimizer=Adam(lr=self.alpha, decay=self.alpha_decay))
         #plot_model(self.model, to_file='models/last_episode.png')
@@ -85,8 +88,6 @@ class DQNCartPoleSolver():
             y_batch.append(y_target[0])
 
         self.model.fit(np.array(x_batch), np.array(y_batch), batch_size=len(x_batch), verbose=0)
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
 
     def dump_model(self, e):
         self.model.save('models/episode_' + str(e) + '.bin')
@@ -120,7 +121,10 @@ class DQNCartPoleSolver():
             #if e % 100 == 0 and not self.quiet:
             print('[Episode {}] - Score {} Mean score for last 100 {} Positive memories {}/{}'.format(e, totalReward, mean_score, len(self.positive_memory), len(self.memory)))
 
-            self.replay(self.batch_size)
+            for i in range(self.minibatches_per_episode):
+                self.replay(self.batch_size)
+            if self.epsilon > self.epsilon_min:
+                self.epsilon *= self.epsilon_decay
             #plot_model(self.model, to_file='models/episode_' + str(e) + '.png')
             #plot_model(self.model, to_file='models/last_episode.png')
             self.dump_model(e)
