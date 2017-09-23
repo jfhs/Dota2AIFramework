@@ -33,6 +33,11 @@ function AI:Init( params )
 end
 
 function AI:Request(pathUri, data, callback)
+	if self.requestInProgress then
+		AI_Log("Request is already in progress, discarding")
+		return
+	end
+	self.requestInProgress = true
 	local fullURL = self.baseURL .. pathUri
 	-- print("Trying to make request to " .. fullURL)
 	local request = CreateHTTPRequestScriptVM("POST", fullURL)
@@ -44,6 +49,7 @@ function AI:Request(pathUri, data, callback)
 		request:SetHTTPRequestHeaderValue("Content-Length", "0")
 	end
 	request:Send(function(result)
+		self.requestInProgress = false
 		if result["StatusCode"] == 200 then
 			local command = dkjson.decode(result['Body'])
 			callback(command)
