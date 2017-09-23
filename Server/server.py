@@ -29,7 +29,7 @@ from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.utils import plot_model
 
-class DQNCartPoleSolver():
+class D2Solver():
     def __init__(self, n_episodes=1000, n_win_ticks=195, max_env_steps=None, gamma=1.0, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, batch_size=4096, minibatches_per_episode=5, monitor=False, quiet=False):
         self.memory = deque(maxlen=1000000)
         self.positive_memory = deque(maxlen=1000000)
@@ -133,5 +133,5 @@ class DQNCartPoleSolver():
         return e
 
 if __name__ == '__main__':
-    agent = DQNCartPoleSolver()
+    agent = D2Solver()
     agent.run()

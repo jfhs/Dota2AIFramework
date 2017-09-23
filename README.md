@@ -1,34 +1,27 @@
-# DotA 2 AI Competition Framework
-The purpose of this framework is to provide a platform for AI competitions in DotA 2. It handles AI setup as well as wrapping the regular DotA 2 lua API to prevent AI scripts from accessing data or performing actions, to emulate the AI playing as a human player.
+This project is a Dota2 Env for OpenAI Gym as well as sample model
 
-[Preview Video](https://www.youtube.com/watch?v=lKfmYQgBC8o)
+It is based on following works (thank you):
+ - https://github.com/ModDota/Dota2AIFramework/
+ - https://github.com/lightbringer/dota2ai
+ - https://github.com/DarkSupremo/VConsoleLib.python
+  
+### Usage
+To run it all (including model), you need 
+- python 3
+- python modules: gym, keras, tensorflow, numpy and their dependencies 
+- dota2 client installed somewhere
+- free 8080 port
 
-### Goals of the framework:
-+ Encourage the development of Lua AI for dota custom games.
-+ Provide a starting point for developers that want AI in their games.
-+ Eventually having decent AI for bot matches.
+To run:
+1. Copy everything from "Game" folder to <Dota2 Install folder>\game\dota_addons\d2ai
+2. Change DOTA_PATH in Server\d2env.py file to your exe/sh for dota2
+3. Create folder Server\models, or comment out `self.model.save('models/episode_' + str(e) + '.bin')` in Server\server.py
+4. Run `python server.py` from Server folder
 
-## Challenges
-Different challenges will drive development in different directions. Therefore the AI framework provides different challenges for AI to deal with. The challenges currently supported are:
-* 1v1 Mid - Two AI face off 1v1 mid on identical heroes on the default dota map. The first AI to kill a tower or get two kills on the other AI wins.
+It should start dota, automatically launch mod, and then allow model to play until it dies or 10 minutes pass
 
-Possible future challenges are:
-* Farm optimization challenge
-* Three versus three mid and jungle.
-* 1v1v1v1
-* Last hit challenge
+Then it will restart, and try again, until model gets 100 creeps or 1000 runs
 
-## Documentation
-Framework AI only has access to a limited subset of the regular dota 2 lua AI. The available functions can be found here:
-* [Global functions](https://github.com/ModDota/Dota2AIFramework/wiki/Global-AI-API)
-* [Unit functions](https://github.com/ModDota/Dota2AIFramework/wiki/Unit-AI-API)
-* [Ability functions](https://github.com/ModDota/Dota2AIFramework/wiki/Ability-AI-AI)
-* AIEvents
-* AIPlayerResource
+Model is saved after each run into Server\models folder
 
-## Using framework AI in a custom game
-To use AI from this framework in a custom game, simply copy the entire scripts/vscripts/AI/ directory, then require AIManager in your gamemode. An existing AI can then be attached to an existing unit using:
-```lua
-AIManager:AttachAI( 'ai_name', unit )
-```
-This will load the AI named ai_name from AI/UserAI/ai_name and attach it to unit.
+Current model seems to be too dumb to not die from dire t1 :(
