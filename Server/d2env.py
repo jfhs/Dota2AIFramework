@@ -14,7 +14,7 @@ OBSERVATIONS_FOR_ME = 7
 DOTA_PATH = 'C:\\Program Files (x86)\\Steam\\steamapps\\common\\dota 2 beta\\game\\bin\\win64\\dota2.exe'
 DOTA_DEFAULT_ARGS = ['-console', '-condebug']
 TIMESCALE = 10
-STEP_UNIT = 20
+STEP_UNIT = 100
 STARTING_LOC = [-1041, -585, 128]
 
 def json2vec(unit):
@@ -100,7 +100,7 @@ class Dota2Env(gym.Env):
         prevCreeps = self._getCreepsKilled(prev)
         curXp = meCur['xp']
         prevXp = mePrev['xp']
-        return (curCreeps - prevCreeps) + (curXp - prevXp) * 0.001
+        return (curCreeps - prevCreeps) #+ (curXp - prevXp) * 0.001
 
     def _getMe(self, world = None):
         world = self.last_json if world is None else world

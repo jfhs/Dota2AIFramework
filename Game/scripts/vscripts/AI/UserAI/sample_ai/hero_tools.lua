@@ -151,7 +151,7 @@ function Dota2AIBot:UseItem(eHero, result)
 end
  
  function Dota2AIBot:Noop(eHero, result)
-	--Noop
+	Say(nil, "NOOP")
 end
  
 function Dota2AIBot:MoveTo(eHero, result)

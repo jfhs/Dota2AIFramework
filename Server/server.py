@@ -27,10 +27,13 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+from keras.utils import plot_model
 
 class DQNCartPoleSolver():
     def __init__(self, n_episodes=1000, n_win_ticks=195, max_env_steps=None, gamma=1.0, epsilon=1.0, epsilon_min=0.01, epsilon_log_decay=0.995, alpha=0.01, alpha_decay=0.01, batch_size=4096, monitor=False, quiet=False):
-        self.memory = deque(maxlen=100000)
+        self.memory = deque(maxlen=1000000)
+        self.positive_memory = deque(maxlen=1000000)
+        self.positive_batch_injection = 10
         self.env = gym.make('dota2-v0')
         if monitor: self.env = gym.wrappers.Monitor(self.env, '../data/cartpole-1', force=True)
         self.gamma = gamma
@@ -51,6 +54,8 @@ class DQNCartPoleSolver():
         self.model.add(Dense(48, activation='tanh'))
         self.model.add(Dense(self.env.action_space.n, activation='linear'))
         self.model.compile(loss='mse', optimizer=Adam(lr=self.alpha, decay=self.alpha_decay))
+        #plot_model(self.model, to_file='models/last_episode.png')
+        self.dump_model(0)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
@@ -69,6 +74,10 @@ class DQNCartPoleSolver():
         x_batch, y_batch = [], []
         minibatch = random.sample(
             self.memory, min(len(self.memory), batch_size))
+
+        # we have very sparse rewards, so trying this to propagate it faster
+        minibatch += random.sample(
+            self.positive_memory, min(len(self.positive_memory), self.positive_batch_injection))
         for state, action, reward, next_state, done in minibatch:
             y_target = self.model.predict(state)
             y_target[0][action] = reward if done else reward + self.gamma * np.max(self.model.predict(next_state)[0])
@@ -78,6 +87,13 @@ class DQNCartPoleSolver():
         self.model.fit(np.array(x_batch), np.array(y_batch), batch_size=len(x_batch), verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+    def dump_model(self, e):
+        self.model.save('models/episode_' + str(e) + '.bin')
+        # print("Layer weights")
+        # for layer in self.model.layers:
+        #     weights = layer.get_weights()
+        #     print(weights)
 
     def run(self):
         scores = deque(maxlen=100)
@@ -91,6 +107,8 @@ class DQNCartPoleSolver():
                 next_state, reward, done, _ = self.env.step(action)
                 next_state = self.preprocess_state(next_state)
                 self.remember(state, action, reward, next_state, done)
+                if reward > 0:
+                    self.positive_memory.append((state, action, reward, next_state, done))
                 state = next_state
                 totalReward += reward
 
@@ -100,10 +118,12 @@ class DQNCartPoleSolver():
                 if not self.quiet: print('Ran {} episodes. Solved after {} trials ?'.format(e, e - 100))
                 return e - 100
             #if e % 100 == 0 and not self.quiet:
-            print('[Episode {}] - Score for current episode {} Mean score over last 100 episodes is {}.'.format(e, totalReward, mean_score))
+            print('[Episode {}] - Score {} Mean score for last 100 {} Positive memories {}/{}'.format(e, totalReward, mean_score, len(self.positive_memory), len(self.memory)))
 
             self.replay(self.batch_size)
-            self.model.save('models/episode_' + str(e) + '.bin')
+            #plot_model(self.model, to_file='models/episode_' + str(e) + '.png')
+            #plot_model(self.model, to_file='models/last_episode.png')
+            self.dump_model(e)
 
         if not self.quiet: print('Did not solve after {} episodes ?'.format(e))
         return e
