@@ -85,22 +85,24 @@ class Dota2Env(gym.Env):
         Dota2Env.instance = self
 
     def _run_dota(self):
-        if self.dotaprocess:
-            print("Dota exists, restarting map")
-            self.vconsole.send_cmd('disconnect')
-            time.sleep(1)
-            self.vconsole.send_cmd('dota_launch_custom_game d2ai dota')
-            #time.sleep(20)
+        isAlive = False if self.dotaprocess is None else self.dotaprocess.poll() is None
+        if not isAlive:
+            self.dotaprocess = subprocess.Popen([DOTA_PATH] + DOTA_DEFAULT_ARGS + ['+sv_cheats 1', '+host_timescale ' + str(TIMESCALE), '+dota_launch_custom_game d2ai dota'])
+            self.vconsole = VConsole2Lib()
+            self.vconsole.log_to_screen = False
+            #self.vconsole.on_prnt_received = vconsolePrint
+            print("Trying connect to vconsole...")
+            while not self.vconsole.connect():
+                pass
+            print("Connected")
             return
-            #self.dotaprocess.kill()
-        self.dotaprocess = subprocess.Popen([DOTA_PATH] + DOTA_DEFAULT_ARGS + ['+sv_cheats 1', '+host_timescale ' + str(TIMESCALE), '+dota_launch_custom_game d2ai dota'])
-        self.vconsole = VConsole2Lib()
-        self.vconsole.log_to_screen = False
-        #self.vconsole.on_prnt_received = vconsolePrint
-        print("Trying connect to vconsole...")
-        while not self.vconsole.connect():
-            pass
-        print("Connected")
+        print("Dota exists, restarting map")
+        self.vconsole.send_cmd('disconnect')
+        time.sleep(1)
+        self.vconsole.send_cmd('dota_launch_custom_game d2ai dota')
+        #time.sleep(20)
+        return
+        #self.dotaprocess.kill()
 
     def _getCreepsKilled(self, world):
         me = self._getMe(world)
